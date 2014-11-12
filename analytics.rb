@@ -55,7 +55,7 @@ end
 module Enumerable
   
   def sum
-    reduce(&:+)
+    reduce(&:+) or 0
   end
   
   def print(n)
@@ -126,6 +126,7 @@ known_aliases = YAML.load <<DATA
   huy: iop
   Wizard Joe: Чубака
   Wormhole: Марислава
+  z-b: zxc
 DATA
 aliases = known_aliases
 nicks = Set.new(aliases.values)
@@ -181,7 +182,7 @@ total_messages = results.map { |_, data| data["messages"] }.sum
 total_messages_size = results.map { |_, data| data["messages size"] }.sum
 
 # Report
-n = 10
+n = 10000
 puts
 puts "По количеству сообщений"
 results.print(n).leaders_by { |data| data["messages"] / total_messages }
