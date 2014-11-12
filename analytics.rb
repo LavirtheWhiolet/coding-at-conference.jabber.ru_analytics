@@ -5,6 +5,24 @@ require 'yaml'
 require 'mathn'
 require 'set'
 
+def debug_info(msg)
+  STDERR.puts "debug: #{msg}"
+end
+
+def info(msg)
+  STDERR.puts "info: #{msg}"
+end
+
+def warning(msg)
+  STDERR.puts "warning: #{msg}"
+end
+
+alias warn warning
+
+def error(msg)
+  abort %(error: #{msg})
+end
+
 class Object
   
   def in? array
@@ -104,24 +122,23 @@ mapreduce do |row_id, msg, sender|
   if sender == "" and /^coding@conference.jabber.ru\/(.*) \-\> (.*)$/ === msg then
     old_alias = $1
     new_alias = $2
-#     next if [old_alias, new_alias].in? ignored_renamings
     old_nick = aliases[old_alias] || nicks[old_alias]
     new_nick = aliases[new_alias] || nicks[new_alias]
-    STDERR.puts %(info: #{old_alias} → #{new_alias})
+    debug %(#{old_alias} → #{new_alias})
     if    not old_nick.known? and not new_nick.known?
       nick = old_alias
-      STDERR.puts %(info: new person: #{nick})
+      info %(new person: #{nick})
       nicks.add nick
       aliases[new_alias] = nick
     elsif not old_nick.known? and     new_nick.known?
-      STDERR.puts %(info: #{old_alias} = #{new_nick})
+      debug_info %(#{old_alias} = #{new_nick})
       aliases[old_alias] = new_nick
     elsif     old_nick.known? and not new_nick.known?
-      STDERR.puts %(info: #{new_alias} = #{old_nick})
+      debug_info %(#{new_alias} = #{old_nick})
       aliases[new_alias] = old_nick
     elsif     old_nick.known? and     new_nick.known?
       if old_nick != new_nick
-        STDERR.puts %(warning: #{old_nick} tries to invade nick of #{new_nick}: #{old_alias} → #{new_alias})
+        warning %(#{old_nick} tries to invade nick of #{new_nick}: #{old_alias} → #{new_alias})
       end
     end
   end
@@ -131,7 +148,7 @@ if not nicks_intersection.empty? then
   STDERR.puts
   STDERR.puts "Псевдонимы"
   STDERR.puts aliases.to_yaml
-  abort %(error: aliases map is not normal; following nicks are aliases too: #{nicks_intersection.join(", ")})
+  error %(aliases map is not normal; following nicks are aliases too: #{nicks_intersection.join(", ")})
 end
 exit
 
