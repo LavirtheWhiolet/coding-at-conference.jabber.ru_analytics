@@ -98,55 +98,27 @@ known_aliases = YAML.load <<DATA
   huj: iop
   huy: iop
 DATA
-known_nicks = Set.new <<DATA.lines.map(&:strip).reject { |l| l.empty? or l.start_with? "#" }
-  iop
-  bx
-  zxc
-  rejjin
-  7000р
-  Цивет
-  Wormhole
-  Wizard Joe
-  rgtbctlpx
-  Сволота
-  Lavir
-  Romanzes
-  ffinder
-  Марислава
-  Yaskhan
-  RanWise
-  @preserved-rebuild
-  doug
-  aman
-  heleg
-  ntsm
-  q~p
-  freon
-  Sergonas
-  Emerаld
-  bain
-  aquatyto
-  Чубака
-  Moby Dick
-DATA
 aliases = known_aliases
-abort %(error: some aliases refer to unknown nicks) unless Set.new(aliases.values).subset?(known_nicks)
+nicks = Set.new
 mapreduce do |row_id, msg, sender|
   if sender == "" and /^coding@conference.jabber.ru\/(.*) \-\> (.*)$/ === msg then
     old_alias = $1
     new_alias = $2
 #     next if [old_alias, new_alias].in? ignored_renamings
-    old_nick = aliases[old_alias] || known_nicks[old_alias]
-    new_nick = aliases[new_alias] || known_nicks[new_alias]
+    old_nick = aliases[old_alias] || nicks[old_alias]
+    new_nick = aliases[new_alias] || nicks[new_alias]
     if    not old_nick.known? and not new_nick.known?
-      STDERR.puts %(error: unknown nicks: #{old_alias} → #{new_alias})
+      nick = old_alias
+      STDERR.puts %(info: new person: #{nick})
+      nicks.add nick
+      aliases[new_alias] = nick
     elsif not old_nick.known? and     new_nick.known?
       aliases[old_alias] = new_nick
     elsif     old_nick.known? and not new_nick.known?
       aliases[new_alias] = old_nick
     elsif     old_nick.known? and     new_nick.known?
       if old_nick != new_nick
-        STDERR.puts %(warning: someone tries to invade other's nick: #{old_alias} (#{old_nick}) → #{new_alias} (#{new_nick}))
+        STDERR.puts %(warning: #{old_nick} tries to invade nick of #{new_nick}: #{old_alias} → #{new_alias})
       end
     end
   end
