@@ -75,82 +75,22 @@ def mapreduce
   end
 end
 
-# Map-reduce: Collect aliases
-# aliases = YAML.load <<YAML
-#   Civeticious: Civet
-#   Дуг: doug
-#   ส็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็็: rejjin
-#   rejjin__: rejjin
-#   theromanzes: Romanzes
-#   Uncatchable: Мариса
-#   Vnuchaev: Lavir
-#   cofreely_arrowized: rgtbctlpx
-#   box: bx
-#   yaskhan: Yaskhan
-#   nancoil: Мариса
-#   kuku: rgtbctlpx
-#   апач-ультра: zxc
-#   Дуг Ерохин: doug
-#   Razor Ramon: zxc
-#   GL_CULL_FACE: Мариса
-#   маша: Мариса
-#   poi: iop
-#   Arzor Armon: zxc
-#   bf: bx
-#   doug': doug
-#   boxxy-fag: bx
-#   mynameiswinner: sw
-#   middlelayerpes: doug
-#   z-b: zxc
-#   МЖМска: 7000p
-#   7000р: 7000p
-#   z-b☆☆☆☆: zxc
-#   poi519: iop
-#   -z-: zxc
-#   Старшенькая: Мариса
-#   zxc.betelgeuse: zxc
-#   Цивет под снегом: Civet
-#   coding@conference.jabber.ru: rejjin
-# YAML
 aliases = YAML.load <<DATA
-  # alias: nick
-  Civeticious: Цивет
-  Цивет под снегом: Цивет
-  Civet: Цивет
-  poi: iop
-  bf: bx
-  nancoil: Марислава
-  boxxy-fag: bx
-  "1 swap 1 max 1+ 2 ?do i * loop": rgtbctlpx
-  Обито: bx
-  GL_CULL_FACE: Марислава
-  Старшенькая: Марислава
-  z-b☆☆☆☆: zxc
-  Razor Ramon: zxc
-  
+  # Alias: Nick
+  abc: def
 DATA
-nicks = Set.new(aliases.values)
-ignored_renamings = [
-  ["bx", "rejjin"],
-  ["poi", "rgtbctltpx"],
-  ["nancoil", "Rr~"],
-  ["Rr~", "Марислава"],
-  ["rejjin", "Yaskhan"],
-  ["poi", "rejjin"]
-]
-ignored_renamings += ignored_renamings.map(&:reverse)
+known_nicks = Set.new YAML.load <<DATA
+  - bx
+DATA
 mapreduce do |row_id, msg, sender|
   if sender == "" and /^coding@conference.jabber.ru\/(.*) \-\> (.*)$/ === msg then
     old_alias = $1
     new_alias = $2
     next if [old_alias, new_alias].in? ignored_renamings
-    old_nick = aliases[old_alias] || nicks[old_alias]
-    new_nick = aliases[new_alias] || nicks[new_alias]
-#     STDERR.puts %(info: #{old_alias}#{if old_nick.known? then " (#{old_nick})" end} → #{new_alias}#{if new_nick.known? then " (#{new_nick})" end})
+    old_nick = aliases[old_alias] || known_nicks[old_alias]
+    new_nick = aliases[new_alias] || known_nicks[new_alias]
     if    not old_nick.known? and not new_nick.known?
-      nick = old_alias
-      nicks.add nick
-      aliases[new_alias] = nick
+      abort %(error: unknown nicks: #{old_alias} → #{new_alias})
     elsif not old_nick.known? and     new_nick.known?
       aliases[old_alias] = new_nick
     elsif     old_nick.known? and not new_nick.known?
@@ -166,10 +106,8 @@ nicks_intersection = (aliases.keys & aliases.values)
 if not nicks_intersection.empty? then
   STDERR.puts "Псевдонимы"
   STDERR.puts aliases.to_yaml
-  raise %(карта псевдонимов не нормализована; следующие ники одновременно являются псевдонимами для других ников: #{nicks_intersection.join(", ")})
+  abort %(error: aliases map is not normal; following nicks are aliases too: #{nicks_intersection.join(", ")})
 end
-puts "Ники"
-puts nicks.to_a.to_yaml
 exit
 
 # Map-reduce: Collect analytics
@@ -198,4 +136,4 @@ puts
 puts "По объему сообщений"
 results.print(n).leaders_by { |data| data["messages size"] / total_messages_size }
 puts
-puts "Последнее сообщение: #{max_row_id}"
+puts "ID последнего сообщения: #{max_row_id}"
