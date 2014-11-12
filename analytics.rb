@@ -127,6 +127,8 @@ known_aliases = YAML.load <<DATA
   Старшенькая: Марислава
   huj: iop
   huy: iop
+  Wizard Joe: Чубака
+  Wormhole: Марислава
 DATA
 aliases = known_aliases
 nicks = Set.new(aliases.values)
@@ -162,7 +164,6 @@ if not nicks_intersection.empty? then
   STDERR.puts aliases.to_yaml
   error %(aliases map is not normal; following nicks are aliases too: #{nicks_intersection.join(", ")})
 end
-exit
 
 # Map-reduce: Collect analytics
 results = Hash.new do |hash, nick|
