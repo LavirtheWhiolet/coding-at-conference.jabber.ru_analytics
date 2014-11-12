@@ -81,8 +81,14 @@ aliases = YAML.load <<DATA
   Civeticious: Цивет
   апач-ультрас: zxc
   rejjin__: rejjin
+  rgtbctltpx: rgtbctlpx
+  Uncatchable: Марислава
+  box: bx
+  yaskhan: Yaskhan
+  nancoil: Марислава
+  marmalmad: Марислава
 DATA
-known_nicks = Set.new <<DATA.lines.map(&:strip)
+known_nicks = Set.new <<DATA.lines.map(&:strip).reject { |l| l.empty? or l.start_with? "#" }
   bx
   zxc
   rejjin
@@ -92,6 +98,16 @@ known_nicks = Set.new <<DATA.lines.map(&:strip)
   Wizard Joe
   rgtbctlpx
   Сволота
+  Lavir
+  Romanzes
+  ffinder
+  Марислава
+  Yaskhan
+  # Others
+  q~p
+  doug
+  freon
+  aman
 DATA
 abort %(error: some aliases refer to unknown nicks) unless Set.new(aliases.values).subset?(known_nicks)
 mapreduce do |row_id, msg, sender|
