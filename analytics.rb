@@ -127,6 +127,8 @@ known_aliases = YAML.load <<DATA
   Wizard Joe: Чубака
   Wormhole: Марислава
   z-b: zxc
+  sw: mynameiswinner
+  
 DATA
 aliases = known_aliases
 nicks = Set.new(aliases.values)
