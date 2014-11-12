@@ -14,7 +14,7 @@ module Logging
   end
 
   def info(msg)
-#     STDERR.puts "info: #{msg}"
+    STDERR.puts "info: #{msg}"
   end
 
   def warning(msg)
@@ -141,7 +141,7 @@ mapreduce do |row_id, msg, sender|
     debug_info %(#{old_alias} → #{new_alias})
     if    not old_nick.known? and not new_nick.known?
       nick = old_alias
-      info %(new person: #{nick})
+      info %(new nick: #{nick})
       nicks.add nick
       aliases[new_alias] = nick
     elsif not old_nick.known? and     new_nick.known?
@@ -159,11 +159,12 @@ mapreduce do |row_id, msg, sender|
 end
 nicks_intersection = (aliases.keys & aliases.values)
 if not nicks_intersection.empty? then
-  STDERR.puts
-  STDERR.puts "Псевдонимы"
-  STDERR.puts aliases.to_yaml
+  info %(aliases:)
+  aliases.each { |alias_, nick| info %(  #{alias_}: #{nick}) }
   error %(aliases map is not normal; following nicks are aliases too: #{nicks_intersection.join(", ")})
 end
+info %(nicks:)
+nicks.each { |nick| info "  #{nick}" }
 
 # Map-reduce: Collect analytics
 results = Hash.new do |hash, nick|
