@@ -124,7 +124,7 @@ mapreduce do |row_id, msg, sender|
     new_alias = $2
     old_nick = aliases[old_alias] || nicks[old_alias]
     new_nick = aliases[new_alias] || nicks[new_alias]
-    debug %(#{old_alias} → #{new_alias})
+    debug_info %(#{old_alias} → #{new_alias})
     if    not old_nick.known? and not new_nick.known?
       nick = old_alias
       info %(new person: #{nick})
