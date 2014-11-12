@@ -99,7 +99,7 @@ known_aliases = YAML.load <<DATA
   huy: iop
 DATA
 aliases = known_aliases
-nicks = Set.new
+nicks = Set.new(aliases.values)
 mapreduce do |row_id, msg, sender|
   if sender == "" and /^coding@conference.jabber.ru\/(.*) \-\> (.*)$/ === msg then
     old_alias = $1
@@ -107,14 +107,17 @@ mapreduce do |row_id, msg, sender|
 #     next if [old_alias, new_alias].in? ignored_renamings
     old_nick = aliases[old_alias] || nicks[old_alias]
     new_nick = aliases[new_alias] || nicks[new_alias]
+    STDERR.puts %(info: #{old_alias} → #{new_alias})
     if    not old_nick.known? and not new_nick.known?
       nick = old_alias
       STDERR.puts %(info: new person: #{nick})
       nicks.add nick
       aliases[new_alias] = nick
     elsif not old_nick.known? and     new_nick.known?
+      STDERR.puts %(info: #{old_alias} = #{new_nick})
       aliases[old_alias] = new_nick
     elsif     old_nick.known? and not new_nick.known?
+      STDERR.puts %(info: #{new_alias} = #{old_nick})
       aliases[new_alias] = old_nick
     elsif     old_nick.known? and     new_nick.known?
       if old_nick != new_nick
@@ -125,6 +128,7 @@ mapreduce do |row_id, msg, sender|
 end
 nicks_intersection = (aliases.keys & aliases.values)
 if not nicks_intersection.empty? then
+  STDERR.puts
   STDERR.puts "Псевдонимы"
   STDERR.puts aliases.to_yaml
   abort %(error: aliases map is not normal; following nicks are aliases too: #{nicks_intersection.join(", ")})
