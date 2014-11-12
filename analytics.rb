@@ -121,6 +121,10 @@ known_aliases = YAML.load <<DATA
   bf: bx
   Civet: Цивет
   boxxy-fag: bx
+  Moby Dick: bx
+  Reptiloid: Чубака
+  z-b☆☆☆☆: zxc
+  Старшенькая: Марислава
   huj: iop
   huy: iop
 DATA
