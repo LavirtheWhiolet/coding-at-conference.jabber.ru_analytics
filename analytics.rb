@@ -173,10 +173,13 @@ end
 max_row_id = 0
 row_index = 0
 mapreduce do |row_id, msg, nick|
+  # Take n first elements.
 #  break if row_index >= 1000
-  nick = aliases[nick] || nick
-  max_row_id = [row_id, max_row_id].max
+  # Filter out unneeded elements.
   next if nick == ""
+  # Process!
+  nick = aliases[nick] || nicks[nick] || error("unknown nick #{nick}")
+  max_row_id = [row_id, max_row_id].max
   results[nick]["messages"] += 1
   results[nick]["messages size"] += msg.size
   row_index += 1
