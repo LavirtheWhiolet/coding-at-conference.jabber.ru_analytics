@@ -76,17 +76,29 @@ def mapreduce
 end
 
 aliases = YAML.load <<DATA
-  # Alias: Nick
-  abc: def
+  # alias: nick
+  Цивет под снегом: Цивет
+  Civeticious: Цивет
+  апач-ультрас: zxc
+  rejjin__: rejjin
 DATA
-known_nicks = Set.new YAML.load <<DATA
-  - bx
+known_nicks = Set.new <<DATA.lines.map(&:strip)
+  bx
+  zxc
+  rejjin
+  7000р
+  Цивет
+  Wormhole
+  Wizard Joe
+  rgtbctlpx
+  Сволота
 DATA
+abort %(error: some aliases refer to unknown nicks) unless Set.new(aliases.values).subset?(known_nicks)
 mapreduce do |row_id, msg, sender|
   if sender == "" and /^coding@conference.jabber.ru\/(.*) \-\> (.*)$/ === msg then
     old_alias = $1
     new_alias = $2
-    next if [old_alias, new_alias].in? ignored_renamings
+#     next if [old_alias, new_alias].in? ignored_renamings
     old_nick = aliases[old_alias] || known_nicks[old_alias]
     new_nick = aliases[new_alias] || known_nicks[new_alias]
     if    not old_nick.known? and not new_nick.known?
