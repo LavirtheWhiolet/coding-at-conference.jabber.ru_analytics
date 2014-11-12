@@ -75,7 +75,7 @@ def mapreduce
   end
 end
 
-aliases = YAML.load <<DATA
+known_aliases = YAML.load <<DATA
   # alias: nick
   Цивет под снегом: Цивет
   Civeticious: Цивет
@@ -87,8 +87,19 @@ aliases = YAML.load <<DATA
   yaskhan: Yaskhan
   nancoil: Марислава
   marmalmad: Марислава
+  Обито: bx
+  kuku: rgtbctlpx
+  Razor Ramon: zxc
+  poi: iop
+  GL_CULL_FACE: Марислава
+  bf: bx
+  Civet: Цивет
+  boxxy-fag: bx
+  huj: iop
+  huy: iop
 DATA
 known_nicks = Set.new <<DATA.lines.map(&:strip).reject { |l| l.empty? or l.start_with? "#" }
+  iop
   bx
   zxc
   rejjin
@@ -103,12 +114,22 @@ known_nicks = Set.new <<DATA.lines.map(&:strip).reject { |l| l.empty? or l.start
   ffinder
   Марислава
   Yaskhan
-  # Others
-  q~p
+  RanWise
+  @preserved-rebuild
   doug
-  freon
   aman
+  heleg
+  ntsm
+  q~p
+  freon
+  Sergonas
+  Emerаld
+  bain
+  aquatyto
+  Чубака
+  Moby Dick
 DATA
+aliases = known_aliases
 abort %(error: some aliases refer to unknown nicks) unless Set.new(aliases.values).subset?(known_nicks)
 mapreduce do |row_id, msg, sender|
   if sender == "" and /^coding@conference.jabber.ru\/(.*) \-\> (.*)$/ === msg then
@@ -118,7 +139,7 @@ mapreduce do |row_id, msg, sender|
     old_nick = aliases[old_alias] || known_nicks[old_alias]
     new_nick = aliases[new_alias] || known_nicks[new_alias]
     if    not old_nick.known? and not new_nick.known?
-      abort %(error: unknown nicks: #{old_alias} → #{new_alias})
+      STDERR.puts %(error: unknown nicks: #{old_alias} → #{new_alias})
     elsif not old_nick.known? and     new_nick.known?
       aliases[old_alias] = new_nick
     elsif     old_nick.known? and not new_nick.known?
