@@ -5,8 +5,9 @@ require 'yaml'
 require 'mathn'
 require 'set'
 
-# Comment out content of specific method to disable particular messages.
-module Log
+# Comment out/uncomment content of specific method to disable/enable
+# particular messages.
+module Logging
 
   def debug_info(msg)
 #     STDERR.puts "debug: #{msg}"
@@ -20,11 +21,11 @@ module Log
     STDERR.puts "warning: #{msg}"
   end
   
+  alias warn warning
+  
 end
 
-include Log
-
-alias warn warning
+include Logging
 
 def error(msg)
   abort %(error: #{msg})
