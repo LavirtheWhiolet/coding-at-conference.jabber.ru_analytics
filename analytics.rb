@@ -58,11 +58,8 @@ module Enumerable
     reduce(&:+)
   end
   
-  def print_leaders_by(n, &f)
-  end
-  
   def print(n)
-    Print.new(self_, n)
+    Print.new(self, n)
   end
   
   class Print
