@@ -133,27 +133,34 @@ DATA
 aliases = known_aliases
 nicks = Set.new(aliases.values)
 mapreduce do |row_id, msg, sender|
-  if sender == "" and /^coding@conference.jabber.ru\/(.*) \-\> (.*)$/ === msg then
-    old_alias = $1
-    new_alias = $2
-    old_nick = aliases[old_alias] || nicks[old_alias]
-    new_nick = aliases[new_alias] || nicks[new_alias]
-    debug_info %(#{old_alias} → #{new_alias})
-    if    not old_nick.known? and not new_nick.known?
-      nick = old_alias
-      info %(new nick: #{nick})
-      nicks.add nick
-      aliases[new_alias] = nick
-    elsif not old_nick.known? and     new_nick.known?
-      debug_info %(#{old_alias} = #{new_nick})
-      aliases[old_alias] = new_nick
-    elsif     old_nick.known? and not new_nick.known?
-      debug_info %(#{new_alias} = #{old_nick})
-      aliases[new_alias] = old_nick
-    elsif     old_nick.known? and     new_nick.known?
-      if old_nick != new_nick
-        warning %(#{old_nick} tries to invade nick of #{new_nick}: #{old_alias} → #{new_alias})
+  if sender == ""
+    if /^coding@conference.jabber.ru\/(.*) \-\> (.*)$/ === msg then
+      old_alias = $1
+      new_alias = $2
+      old_nick = aliases[old_alias] || nicks[old_alias]
+      new_nick = aliases[new_alias] || nicks[new_alias]
+      debug_info %(#{old_alias} → #{new_alias})
+      if    not old_nick.known? and not new_nick.known?
+        nick = old_alias
+        debug_info %(new nick: #{nick})
+        nicks.add nick
+        debug_info %(#{new_alias} = #{nick})
+        aliases[new_alias] = nick
+      elsif not old_nick.known? and     new_nick.known?
+        debug_info %(#{old_alias} = #{new_nick})
+        aliases[old_alias] = new_nick
+      elsif     old_nick.known? and not new_nick.known?
+        debug_info %(#{new_alias} = #{old_nick})
+        aliases[new_alias] = old_nick
+      elsif     old_nick.known? and     new_nick.known?
+        if old_nick != new_nick
+          warning %(#{old_nick} tries to invade nick of #{new_nick}: #{old_alias} → #{new_alias})
+        end
       end
+    elsif /^coding@conference.jabber.ru\/(.*) has joined$/ === msg then
+      nick = $1
+      debug_info %(new nick: #{nick})
+      nicks.add nick
     end
   end
 end
