@@ -144,7 +144,7 @@ alias_to_nick = nil; begin
     лола: лолита
   DATA
   # Each nick is alias to itself.
-  alias_to_nick.values.each { |nick| nicks[nick] = nick }
+  alias_to_nick.values.each { |nick| alias_to_nick[nick] = nick }
   # Collect the rest of nicks and aliases.
   maybe_add_orphan_alias = lambda do |alias_|
     if not alias_to_nick.has_key? alias_
@@ -189,7 +189,7 @@ alias_to_nick = nil; begin
   # Orphan aliases are likely to be nicks.
   alias_to_nick.each do |alias_, nick|
     if nick == nil then
-      alias_to_nick[alias_] = alias
+      alias_to_nick[alias_] = alias_
     end
   end
   # Print nicks.
