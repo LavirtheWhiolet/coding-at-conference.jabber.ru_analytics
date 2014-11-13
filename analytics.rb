@@ -193,6 +193,14 @@ alias_to_nick = nil; begin
     зелёное_дерево: зелёное дерево
     rem22963: rem23
     "doug ": doug
+    # from zxc
+    Nice Two: Марислава
+    rastan: pacman
+    Madness Returns: Марислава
+    ibex: zxc
+    ll~~>: zxc
+    rrr: zxc
+    разящее лезвие: chair
   YAML
   # Each nick is alias to itself.
   alias_to_nick.values.each { |nick| alias_to_nick[nick] = nick }
