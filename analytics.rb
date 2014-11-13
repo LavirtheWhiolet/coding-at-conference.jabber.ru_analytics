@@ -95,103 +95,108 @@ end
 
 def mapreduce
   CSV.foreach(ARGV[0]) do |row|
-    yield(row_id = row[0].to_i, msg = row[1], nick = row[2])
+    row_id = row[0].to_i
+    msg = row[1]
+    sender = row[2]
+    yield row_id, msg, sender
   end
 end
 
 # Pass 1: Collect nicks an aliases.
-#   Note. Each person has one nick. Each nick may have zero or more aliases.
-known_aliases = YAML.load <<DATA
-  # alias: nick
-  Цивет под снегом: Цивет
-  Civeticious: Цивет
-  апач-ультрас: zxc
-  rejjin__: rejjin
-  rgtbctltpx: rgtbctlpx
-  Uncatchable: Марислава
-  box: bx
-  yaskhan: Yaskhan
-  nancoil: Марислава
-  marmalmad: Марислава
-  Обито: bx
-  kuku: rgtbctlpx
-  Razor Ramon: zxc
-  poi: iop
-  GL_CULL_FACE: Марислава
-  bf: bx
-  Civet: Цивет
-  boxxy-fag: bx
-  Moby Dick: bx
-  Reptiloid: Чубака
-  z-b☆☆☆☆: zxc
-  Старшенькая: Марислава
-  huj: iop
-  huy: iop
-  Wizard Joe: Чубака
-  Wormhole: Марислава
-  z-b: zxc
-  sw: mynameiswinner
-  tallman: /s/tallman
-  лолита-ультрас: лолита
-  lolita: лолита
-  lola: лолита
-  лола: лолита
-DATA
-aliases = known_aliases # .dup
-nicks = Set.new(aliases.values)
-orphan_aliases = Set.new
-add_orphan_alias = lambda do |alias_|
-  if not orphan_aliases.include? alias_
-    debug_info %(orphan alias: #{alias_})
-    orphan_aliases.add alias_
-  end
-end
-mapreduce do |row_id, msg, sender|
-  if sender == ""
-    if /^coding@conference.jabber.ru\/(.*) \-\> (.*)$/ === msg then
-      old_alias = $1
-      new_alias = $2
-      old_nick = aliases[old_alias] || nicks[old_alias]
-      new_nick = aliases[new_alias] || nicks[new_alias]
-      debug_info %(#{old_alias} → #{new_alias})
-      if    not old_nick.known? and not new_nick.known?
-        nick = old_alias
-        debug_info %(new nick: #{nick})
-        nicks.add nick
-        debug_info %(#{new_alias} = #{nick})
-        aliases[new_alias] = nick
-      elsif not old_nick.known? and     new_nick.known?
-        debug_info %(#{old_alias} = #{new_nick})
-        aliases[old_alias] = new_nick
-      elsif     old_nick.known? and not new_nick.known?
-        debug_info %(#{new_alias} = #{old_nick})
-        aliases[new_alias] = old_nick
-      elsif     old_nick.known? and     new_nick.known?
-        if old_nick != new_nick
-          warning %(#{old_nick} tries to invade nick of #{new_nick}: #{old_alias} → #{new_alias})
-        end
-      end
-    elsif /^coding@conference.jabber.ru\/(.*) has joined$/ === msg then
-      # This may be a new person or an old person with a different alias.
-      add_orphan_alias.($1)
+#   Note. Each person has one nick. Each nick may have one or more aliases.
+#   Each nick is alias for itself.
+alias_to_nick = nil; begin
+  # Add known aliases.
+  alias_to_nick = YAML.load <<-DATA
+    # alias: nick
+    Цивет под снегом: Цивет
+    Civeticious: Цивет
+    апач-ультрас: zxc
+    rejjin__: rejjin
+    rgtbctltpx: rgtbctlpx
+    Uncatchable: Марислава
+    box: bx
+    yaskhan: Yaskhan
+    nancoil: Марислава
+    marmalmad: Марислава
+    Обито: bx
+    kuku: rgtbctlpx
+    Razor Ramon: zxc
+    poi: iop
+    GL_CULL_FACE: Марислава
+    bf: bx
+    Civet: Цивет
+    boxxy-fag: bx
+    Moby Dick: bx
+    Reptiloid: Чубака
+    z-b☆☆☆☆: zxc
+    Старшенькая: Марислава
+    huj: iop
+    huy: iop
+    Wizard Joe: Чубака
+    Wormhole: Марислава
+    z-b: zxc
+    sw: mynameiswinner
+    tallman: /s/tallman
+    лолита-ультрас: лолита
+    lolita: лолита
+    lola: лолита
+    лола: лолита
+  DATA
+  # Each nick is alias to itself.
+  alias_to_nick.values.each { |nick| nicks[nick] = nick }
+  # Collect the rest of nicks and aliases.
+  maybe_add_orphan_alias = lambda do |alias_|
+    if not alias_to_nick.has_key? alias_
+      debug_info %(#{alias_} = ???)
+      alias_to_nick[alias_] = nil
     end
-  elsif "<coding@conference.jabber.ru" === msg then
-    # ignore
-  else
-    # We don't know if it is a new person or an old person with a different
-    # alias.
-    add_orphan_alias.(sender)
   end
+  mapreduce do |row_id, msg, sender|
+    if sender == ""
+      if /^coding@conference.jabber.ru\/(.*) \-\> (.*)$/ === msg then
+        old_alias = $1
+        new_alias = $2
+        old_nick = alias_to_nick[old_alias]
+        new_nick = alias_to_nick[new_alias]
+        debug_info %(#{old_alias} → #{new_alias})
+        if    not old_nick.known? and not new_nick.known?
+          nick = old_alias
+          debug_info %(new nick: #{nick})
+          alias_to_nick[nick] = nick
+          debug_info %(#{new_alias} = #{nick})
+          alias_to_nick[new_alias] = nick
+        elsif not old_nick.known? and     new_nick.known?
+          debug_info %(#{old_alias} = #{new_nick})
+          alias_to_nick[old_alias] = new_nick
+        elsif     old_nick.known? and not new_nick.known?
+          debug_info %(#{new_alias} = #{old_nick})
+          alias_to_nick[new_alias] = old_nick
+        elsif     old_nick.known? and     new_nick.known?
+          if old_nick != new_nick
+            warning %(#{old_nick} tries to invade nick of #{new_nick}: #{old_alias} → #{new_alias})
+          end
+        end
+      elsif /^coding@conference.jabber.ru\/(.*) has joined$/ === msg then
+        maybe_add_orphan_alias.($1)
+      end
+    elsif "<coding@conference.jabber.ru" === msg then
+      # ignore
+    else
+      maybe_add_orphan_alias.(sender)
+    end
+  end
+  # Orphan aliases are likely to be nicks.
+  alias_to_nick.each do |alias_, nick|
+    if nick == nil then
+      alias_to_nick[alias_] = alias
+    end
+  end
+  # Print nicks.
+  info %(nicks:)
+  nicks.each { |nick| info "  #{nick}" }
 end
-if not (intersection = (aliases.keys & aliases.values)).empty? then
-  info %(aliases:)
-  aliases.each { |alias_, nick| info %(  #{alias_}: #{nick}) }
-  error %(aliases map is not normal; following nicks are aliases too: #{nicks_intersection.join(", ")})
-end
-additional_nicks = orphan_aliases.subtract(aliases.keys)
-nicks = nicks.union(additional_nicks)
-info %(nicks:)
-nicks.each { |nick| info "  #{nick}" }
+exit
 
 # Pass 2: Collect analytics
 results = Hash.new do |hash, nick|
@@ -199,13 +204,13 @@ results = Hash.new do |hash, nick|
 end
 max_row_id = 0
 row_index = 0
-mapreduce do |row_id, msg, nick|
+mapreduce do |row_id, msg, sender|
 #   # Take n first elements.
 #   break if row_index >= 1000
   # Filter out unneeded elements.
-  next if nick == "" or nick == "<coding@conference.jabber.ru"
+  next if sender == "" or sender == "<coding@conference.jabber.ru"
   # Process!
-  nick = aliases[nick] || nicks[nick] || error("unknown nick #{nick}")
+  nick = aliases[sender] or error("sender is unknown: #{sender}")
   max_row_id = [row_id, max_row_id].max
   results[nick]["messages"] += 1
   results[nick]["messages size"] += msg.size
