@@ -88,18 +88,35 @@ end
 
 #### BUSINESS LOGIC ####
 
-def mapreduce
-  row_index = 0
-  CSV.foreach(ARGV[0]) do |row|
-#     break if row_index >= 10000
-    row_id = row[0].to_i
-    msg = row[1]
-    sender = row[2]
-    datetime = Time.parse(row[3])
-    yield row_id, msg, sender, datetime
-    row_index += 1
+class Rows
+  
+  include Enumerable
+  
+  def self.from(filename)
+    new(filename)
   end
+  
+  private_class_method :new
+  
+  def initialize(filename)
+    raise %("#{filename}" does not exist) if not File.exist?(filename)
+    @filename = filename
+  end
+  
+  def each
+    CSV.foreach(ARGV[0]) do |row|
+      row_id = row[0].to_i
+      msg = row[1]
+      sender = row[2]
+      datetime = Time.parse(row[3])
+      yield row_id, msg, sender, datetime
+    end
+  end
+  
 end
+
+# Read data.
+rows = Rows.from(ARGV[0])
 
 # Pass 1: Collect nicks an aliases.
 #   Note. Each person has one nick. Each nick may have one or more aliases.
@@ -211,7 +228,7 @@ alias_to_nick = nil; begin
       alias_to_nick[alias_] = nil
     end
   end
-  mapreduce do |row_id, msg, sender|
+  rows.each do |row_id, msg, sender|
     if sender == ""
       if /^coding@conference.jabber.ru\/(.*) \-\> (.*)$/ === msg then
         old_alias = $1
@@ -261,22 +278,24 @@ alias_to_nick = nil; begin
 end
 
 # Pass 2: Collect analytics
-analytics = Hash.new do |hash, nick|
-  hash[nick] = Hash.new { |hash, key| hash[key] = 0 }
-end
-max_row_id = 0
-min_datetime = nil
-max_datetime = nil
-mapreduce do |row_id, msg, sender, datetime|
-  # Filter out unneeded elements.
-  next if sender == "" or sender == "<coding@conference.jabber.ru"
-  # Process!
-  nick = alias_to_nick[sender] or error("sender is unknown: #{sender}")
-  max_row_id = [row_id, max_row_id].max
-  analytics[nick]["messages"] += 1
-  analytics[nick]["messages size"] += msg.size
-#   min_datetime = [min_datetime, datetime].compact.min
-#   max_datetime = [max_datetime, datetime].compact.max
+analytics = nil; begin
+  analytics = Hash.new do |hash, nick|
+    hash[nick] = Hash.new { |hash, key| hash[key] = 0 }
+  end
+  max_row_id = 0
+  min_datetime = nil
+  max_datetime = nil
+  rows.each do |row_id, msg, sender, datetime|
+    # Filter out unneeded elements.
+    next if sender == "" or sender == "<coding@conference.jabber.ru"
+    # Process!
+    nick = alias_to_nick[sender] or error("sender is unknown: #{sender}")
+    max_row_id = [row_id, max_row_id].max
+    analytics[nick]["messages"] += 1
+    analytics[nick]["messages size"] += msg.size
+#     min_datetime = [min_datetime, datetime].compact.min
+#     max_datetime = [max_datetime, datetime].compact.max
+  end
 end
 
 # Report
