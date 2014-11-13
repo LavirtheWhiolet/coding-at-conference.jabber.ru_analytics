@@ -137,7 +137,8 @@ alias_to_nick = nil; begin
     Wormhole: Марислава
     z-b: zxc
     sw: mynameiswinner
-    tallman: /s/tallman
+    tallman: Чубака
+    /s/tallman: Чубака
     лолита-ультрас: лолита
     lolita: лолита
     lola: лолита
@@ -185,6 +186,8 @@ alias_to_nick = nil; begin
     aman7: aman
     -z-w: zxc
     anoos_sweetshare: doug
+    yobayoba: yoba
+    AkiraYamaoka: Akira Yamaoka
   DATA
   # Each nick is alias to itself.
   alias_to_nick.values.each { |nick| alias_to_nick[nick] = nick }
@@ -220,8 +223,12 @@ alias_to_nick = nil; begin
             warning %(#{old_nick} tries to invade nick of #{new_nick}: #{old_alias} → #{new_alias})
           end
         end
-      elsif /^coding@conference.jabber.ru\/(.*) has (joined|left)$/ === msg then
+      elsif /^coding@conference.jabber.ru\/(.*) has joined$/ === msg or
+          /^coding@conference.jabber.ru\/(.*) has left$/ === msg or
+          /^coding@conference.jabber.ru\/(.*) left$/ === msg then
         maybe_add_orphan_alias.($1)
+      else
+        warning %(unknown service message: #{msg})
       end
     elsif sender == "<coding@conference.jabber.ru" then
       # ignore
