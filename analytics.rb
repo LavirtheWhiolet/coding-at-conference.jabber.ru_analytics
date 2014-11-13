@@ -135,9 +135,15 @@ def pie(title, x_axis_title, y_axis_title, data)
       #{data.map { |key, value| "[#{key.inspect}, #{value}]" }.join(", ")}
     ]);
     // Set chart options
-    var options = {'title':'#{title}',
-                   'width': 800,
-                   'height':600};
+    var options = {
+      'title':'#{title}',
+      'width': 800,
+      'height':600,
+      'legend': {
+        'position': 'labeled'
+      },
+      'pieSliceText': 'none'
+    };
     // Instantiate and draw our chart, passing in some options.
     var chart = new google.visualization.PieChart(document.getElementById("#{result.div_id}"));
     chart.draw(data, options);
