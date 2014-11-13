@@ -61,25 +61,8 @@ module Enumerable
     reduce(&:+) or 0
   end
   
-  def print(n)
-    Print.new(self, n)
-  end
-  
-  class Print
-    
-    def initialize(self_, n)
-      @self_ = self_
-      @n = n
-    end
-    
-    def leaders_by(&f)
-      r = @self_.to_a.
-        map { |nick, data| [nick, f.(data)] }.
-        sort_by { |nick, val| -val }
-      r.take(@n).each { |nick, val| puts "#{nick}: #{val.to_percent_string}" }
-      puts "Остальные: #{r.drop(@n).map { |nick, val| val }.sum.to_percent_string}"
-    end
-    
+  def reduce_after(n, &f)
+    self.take(n) + [self.drop(n).reduce(&f)]
   end
   
 end
@@ -90,17 +73,31 @@ class Numeric
     "#{(self * 100).to_f.round(1).to_s}%"
   end
   
+  def to_info_size_string
+    powers = ["", "k", "M", "G", "T"]
+    power = lambda { powers.first }
+    x = self
+    while x > 1024
+      x /= 1024
+      powers.shift
+    end
+    "#{if x.is_a? Integer then x else x.to_f.round(1) end}#{power.()}"
+  end
+  
 end
 
 #### BUSINESS LOGIC ####
 
 def mapreduce
+  row_index = 0
   CSV.foreach(ARGV[0]) do |row|
+#     break if row_index >= 10000
     row_id = row[0].to_i
     msg = row[1]
     sender = row[2]
     datetime = Time.parse(row[3])
     yield row_id, msg, sender, datetime
+    row_index += 1
   end
 end
 
@@ -255,41 +252,54 @@ alias_to_nick = nil; begin
 end
 
 # Pass 2: Collect analytics
-results = Hash.new do |hash, nick|
+analytics = Hash.new do |hash, nick|
   hash[nick] = Hash.new { |hash, key| hash[key] = 0 }
 end
 max_row_id = 0
-row_index = 0
 min_datetime = nil
 max_datetime = nil
 mapreduce do |row_id, msg, sender, datetime|
-#   # Take n first elements.
-#   break if row_index >= 1000
   # Filter out unneeded elements.
   next if sender == "" or sender == "<coding@conference.jabber.ru"
   # Process!
   nick = alias_to_nick[sender] or error("sender is unknown: #{sender}")
   max_row_id = [row_id, max_row_id].max
-  results[nick]["messages"] += 1
-  results[nick]["messages size"] += msg.size
+  analytics[nick]["messages"] += 1
+  analytics[nick]["messages size"] += msg.size
 #   min_datetime = [min_datetime, datetime].compact.min
 #   max_datetime = [max_datetime, datetime].compact.max
-  # 
-  row_index += 1
 end
-total_messages = results.map { |_, data| data["messages"] }.sum
-total_messages_size = results.map { |_, data| data["messages size"] }.sum
 
 # Report
 n = 25
+rest_as_1st_and_sum_2nd = lambda do |result, row|
+  ["Остальные", result[1] + row[1]]
+end
+sum_2nd = lambda do |analytics|
+  analytics.map { |_, value| value }.sum
+end
 puts
 puts "По количеству сообщений"
 puts "-----------------------"
-results.print(n).leaders_by { |data| data["messages"] / total_messages }
+a = analytics.
+  map { |nick, data| [nick, data["messages"]] }.
+  sort_by { |_, messages| -messages }.
+  reduce_after(n, &rest_as_1st_and_sum_2nd)
+total = sum_2nd.(a)
+a.each do |nick, messages|
+  puts "#{nick}: #{messages} (#{(messages / total).to_percent_string})"
+end
 puts
 puts "По объему сообщений"
 puts "-------------------"
-results.print(n).leaders_by { |data| data["messages size"] / total_messages_size }
+a = analytics.
+  map { |nick, data| [nick, data["messages size"]] }.
+  sort_by { |_, msgs_size| -msgs_size }.
+  reduce_after(n, &rest_as_1st_and_sum_2nd)
+total = sum_2nd.(a)
+a.each do |nick, messages_size|
+  puts "#{nick}: #{messages_size.to_info_size_string} (#{(messages_size / total).to_percent_string})"
+end
 puts
 puts "ID последнего сообщения: #{max_row_id}"
 # puts "Период: с #{min_datetime.to_date.to_s} по #{max_datetime.to_date.to_s}"
