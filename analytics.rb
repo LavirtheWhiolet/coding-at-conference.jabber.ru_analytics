@@ -192,6 +192,7 @@ alias_to_nick = nil; begin
     7000р: Yaskhan
     зелёное_дерево: зелёное дерево
     rem22963: rem23
+    "doug ": doug
   YAML
   # Each nick is alias to itself.
   alias_to_nick.values.each { |nick| alias_to_nick[nick] = nick }
