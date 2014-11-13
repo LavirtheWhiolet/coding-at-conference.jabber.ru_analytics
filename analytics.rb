@@ -270,7 +270,7 @@ total_messages = results.map { |_, data| data["messages"] }.sum
 total_messages_size = results.map { |_, data| data["messages size"] }.sum
 
 # Report
-n = 10000
+n = 25
 puts
 puts "По количеству сообщений"
 results.print(n).leaders_by { |data| data["messages"] / total_messages }
