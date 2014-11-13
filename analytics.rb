@@ -194,7 +194,7 @@ alias_to_nick = nil; begin
   end
   # Print nicks.
   info %(nicks:)
-  nicks.each { |nick| info "  #{nick}" }
+  alias_to_nick.values.uniq.each { |nick| info "  #{nick}" }
 end
 exit
 
