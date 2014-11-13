@@ -193,7 +193,7 @@ alias_to_nick = nil; begin
     кодер-шмодер: Yaskhan
     7000p: Yaskhan
     7000р: Yaskhan
-    зеленое_дерево: зелёное дерево
+    зелёное_дерево: зелёное дерево
     rem22963: rem23
   YAML
   # Each nick is alias to itself.
@@ -272,8 +272,8 @@ mapreduce do |row_id, msg, sender, datetime|
   max_row_id = [row_id, max_row_id].max
   results[nick]["messages"] += 1
   results[nick]["messages size"] += msg.size
-  min_datetime = [min_datetime, datetime].compact.min
-  max_datetime = [max_datetime, datetime].compact.max
+#   min_datetime = [min_datetime, datetime].compact.min
+#   max_datetime = [max_datetime, datetime].compact.max
   # 
   row_index += 1
 end
@@ -292,4 +292,4 @@ puts "-------------------"
 results.print(n).leaders_by { |data| data["messages size"] / total_messages_size }
 puts
 puts "ID последнего сообщения: #{max_row_id}"
-puts "Период: с #{min_datetime.to_date.to_s} по #{max_datetime.to_date.to_s}"
+# puts "Период: с #{min_datetime.to_date.to_s} по #{max_datetime.to_date.to_s}"
