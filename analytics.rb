@@ -156,7 +156,7 @@ end
 def mapreduce
   row_index = 0
   CSV.foreach(ARGV[0]) do |row|
-    break if row_index >= 10000
+#     break if row_index >= 10000
     row_id = row[0].to_i
     msg = row[1]
     sender = row[2]
