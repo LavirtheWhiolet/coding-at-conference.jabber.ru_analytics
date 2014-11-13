@@ -177,10 +177,10 @@ alias_to_nick = nil; begin
             warning %(#{old_nick} tries to invade nick of #{new_nick}: #{old_alias} → #{new_alias})
           end
         end
-      elsif /^coding@conference.jabber.ru\/(.*) has joined$/ === msg then
+      elsif /^coding@conference.jabber.ru\/(.*) has (joined|left)$/ === msg then
         maybe_add_orphan_alias.($1)
       end
-    elsif "<coding@conference.jabber.ru" === msg then
+    elsif sender == "<coding@conference.jabber.ru" then
       # ignore
     else
       maybe_add_orphan_alias.(sender)
