@@ -140,9 +140,9 @@ def pie(title, x_axis_title, y_axis_title, data)
       'width': 800,
       'height':600,
       'legend': {
-        'position': 'labeled'
+        'position': 'none'
       },
-      'pieSliceText': 'none'
+      'pieSliceText': 'label'
     };
     // Instantiate and draw our chart, passing in some options.
     var chart = new google.visualization.PieChart(document.getElementById("#{result.div_id}"));
