@@ -136,8 +136,8 @@ def pie(title, x_axis_title, y_axis_title, data)
     ]);
     // Set chart options
     var options = {'title':'#{title}',
-                   'width': 1280,
-                   'height':800};
+                   'width': 800,
+                   'height':600};
     // Instantiate and draw our chart, passing in some options.
     var chart = new google.visualization.PieChart(document.getElementById("#{result.div_id}"));
     chart.draw(data, options);
