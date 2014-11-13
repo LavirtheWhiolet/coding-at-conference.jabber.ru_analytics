@@ -107,7 +107,7 @@ end
 #   Each nick is alias for itself.
 alias_to_nick = nil; begin
   # Add known aliases.
-  alias_to_nick = YAML.load <<-DATA
+  alias_to_nick = YAML.load <<-YAML
     # alias: nick
     Цивет под снегом: Цивет
     Civeticious: Цивет
@@ -152,7 +152,7 @@ alias_to_nick = nil; begin
     rejjin_jru: rejjin
     Nice One: Марислава
     Untouchable: Марислава
-    fakenimus\40jabber.ru: fakenimus
+    fakenimus\\40jabber.ru: fakenimus
     Fano plane matroid: Марислава
     pyos: doug
     anoos: doug
@@ -188,7 +188,7 @@ alias_to_nick = nil; begin
     anoos_sweetshare: doug
     yobayoba: yoba
     AkiraYamaoka: Akira Yamaoka
-  DATA
+  YAML
   # Each nick is alias to itself.
   alias_to_nick.values.each { |nick| alias_to_nick[nick] = nick }
   # Collect the rest of nicks and aliases.
@@ -246,7 +246,6 @@ alias_to_nick = nil; begin
   info %(nicks:)
   alias_to_nick.values.uniq.each { |nick| info "  #{nick}" }
 end
-exit
 
 # Pass 2: Collect analytics
 results = Hash.new do |hash, nick|
