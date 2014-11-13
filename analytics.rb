@@ -259,7 +259,7 @@ mapreduce do |row_id, msg, sender|
   # Filter out unneeded elements.
   next if sender == "" or sender == "<coding@conference.jabber.ru"
   # Process!
-  nick = aliases[sender] or error("sender is unknown: #{sender}")
+  nick = alias_to_nick[sender] or error("sender is unknown: #{sender}")
   max_row_id = [row_id, max_row_id].max
   results[nick]["messages"] += 1
   results[nick]["messages size"] += msg.size
