@@ -193,7 +193,7 @@ alias_to_nick = nil; begin
     кодер-шмодер: Yaskhan
     7000p: Yaskhan
     7000р: Yaskhan
-    зеленое_дерево: зеленое дерево
+    зеленое_дерево: зелёное дерево
     rem22963: rem23
   YAML
   # Each nick is alias to itself.
