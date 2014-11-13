@@ -17,7 +17,7 @@ module Logging
   end
 
   def info(msg)
-    STDERR.puts "info: #{msg}"
+#     STDERR.puts "info: #{msg}"
   end
 
   def warning(msg)
@@ -86,12 +86,67 @@ class Numeric
   
 end
 
+#### CHARTING ####
+
+# +charts+ are objects returned by #chart().
+def html(*charts)
+  <<-HTML
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <!--Load the AJAX API-->
+        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+        <script type="text/javascript">
+          // Load the Visualization API and the piechart package.
+          google.load('visualization', '1.0', {'packages':['corechart']});
+          // Set a callback to run when the Google Visualization API is loaded.
+          google.setOnLoadCallback(drawCharts);
+          // Callback that creates and populates a data table,
+          // instantiates the pie chart, passes in the data and
+          // draws it.
+          function drawCharts() {
+            #{charts.map(&:js).join("\n")}
+          }
+        </script>
+      </head>
+      <body>
+        #{charts.map { |chart| %{<div id="#{chart.div_id}"></div>} }.join("\n")}
+      </body>
+    </html>
+  HTML
+end
+
+# returns a chart object.
+# 
+# +data+ is map from nick to value.
+# 
+def pie(title, x_axis_title, y_axis_title, data)
+  result = OpenStruct.new
+  result.div_id = "div#{result.__id__.to_s}"
+  result.js = <<-JS
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', #{x_axis_title.inspect});
+    data.addColumn('number', #{y_axis_title.inspect});
+    data.addRows([
+      #{data.map { |key, value| "[#{key.inspect}, #{value}]" }.join(", ")}
+    ]);
+    // Set chart options
+    var options = {'title':'#{title}',
+                   'width': 1280,
+                   'height':800};
+    // Instantiate and draw our chart, passing in some options.
+    var chart = new google.visualization.PieChart(document.getElementById("#{result.div_id}"));
+    chart.draw(data, options);
+  JS
+  return result
+end
+
 #### BUSINESS LOGIC ####
 
 def mapreduce
   row_index = 0
   CSV.foreach(ARGV[0]) do |row|
-#     break if row_index >= 10000
+    break if row_index >= 10000
     row_id = row[0].to_i
     msg = row[1]
     sender = row[2]
@@ -287,28 +342,21 @@ end
 sum_2nd = lambda do |analytics|
   analytics.map { |_, value| value }.sum
 end
-puts
-puts "По количеству сообщений"
-puts "-----------------------"
-a = analytics.
-  map { |nick, data| [nick, data["messages"]] }.
-  sort_by { |_, messages| -messages }.
-  reduce_after(n, &rest_as_1st_and_sum_2nd)
-total = sum_2nd.(a)
-a.each do |nick, messages|
-  puts "#{nick}: #{messages} (#{(messages / total).to_percent_string})"
-end
-puts
-puts "По объему сообщений"
-puts "-------------------"
-a = analytics.
-  map { |nick, data| [nick, data["messages size"]] }.
-  sort_by { |_, msgs_size| -msgs_size }.
-  reduce_after(n, &rest_as_1st_and_sum_2nd)
-total = sum_2nd.(a)
-a.each do |nick, messages_size|
-  puts "#{nick}: #{messages_size.to_info_size_string} (#{(messages_size / total).to_percent_string})"
-end
-puts
-puts "ID последнего сообщения: #{max_row_id}"
+p1 = pie(
+  "Количество сообщений",
+  "Ник", "Сообщений",
+  analytics.
+    map { |nick, data| [nick, data["messages"]] }.
+    sort_by { |_, messages| -messages }.
+    reduce_after(n, &rest_as_1st_and_sum_2nd)
+)
+p2 = pie(
+  "Объем сообщений",
+  "Ник", "Объем",
+  analytics.
+    map { |nick, data| [nick, data["messages size"]] }.
+    sort_by { |_, msgs_size| -msgs_size }.
+    reduce_after(n, &rest_as_1st_and_sum_2nd)
+)
+puts html(p1, p2)
 # puts "Период: с #{min_datetime.to_date.to_s} по #{max_datetime.to_date.to_s}"
