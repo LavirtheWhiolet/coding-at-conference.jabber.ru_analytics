@@ -4,6 +4,7 @@ require 'ostruct'
 require 'yaml'
 require 'mathn'
 require 'set'
+require 'time'
 
 #### COMMON LIBRARY ####
 
@@ -98,7 +99,8 @@ def mapreduce
     row_id = row[0].to_i
     msg = row[1]
     sender = row[2]
-    yield row_id, msg, sender
+    datetime = Time.parse(row[3])
+    yield row_id, msg, sender, datetime
   end
 end
 
@@ -188,6 +190,11 @@ alias_to_nick = nil; begin
     anoos_sweetshare: doug
     yobayoba: yoba
     AkiraYamaoka: Akira Yamaoka
+    кодер-шмодер: Yaskhan
+    7000p: Yaskhan
+    7000р: Yaskhan
+    зеленое_дерево: зеленое дерево
+    rem22963: rem23
   YAML
   # Each nick is alias to itself.
   alias_to_nick.values.each { |nick| alias_to_nick[nick] = nick }
@@ -253,7 +260,9 @@ results = Hash.new do |hash, nick|
 end
 max_row_id = 0
 row_index = 0
-mapreduce do |row_id, msg, sender|
+min_datetime = nil
+max_datetime = nil
+mapreduce do |row_id, msg, sender, datetime|
 #   # Take n first elements.
 #   break if row_index >= 1000
   # Filter out unneeded elements.
@@ -263,6 +272,8 @@ mapreduce do |row_id, msg, sender|
   max_row_id = [row_id, max_row_id].max
   results[nick]["messages"] += 1
   results[nick]["messages size"] += msg.size
+  min_datetime = [min_datetime, datetime].compact.min
+  max_datetime = [max_datetime, datetime].compact.max
   # 
   row_index += 1
 end
@@ -273,9 +284,12 @@ total_messages_size = results.map { |_, data| data["messages size"] }.sum
 n = 25
 puts
 puts "По количеству сообщений"
+puts "-----------------------"
 results.print(n).leaders_by { |data| data["messages"] / total_messages }
 puts
 puts "По объему сообщений"
+puts "-------------------"
 results.print(n).leaders_by { |data| data["messages size"] / total_messages_size }
 puts
 puts "ID последнего сообщения: #{max_row_id}"
+puts "Период: с #{min_datetime.to_date.to_s} по #{max_datetime.to_date.to_s}"
