@@ -138,7 +138,7 @@ def pie(title, x_axis_title, y_axis_title, data)
     var options = {
       'title':'#{title}',
       'width': 800,
-      'height':600,
+      'height': 800,
       'legend': {
         'position': 'none'
       },
