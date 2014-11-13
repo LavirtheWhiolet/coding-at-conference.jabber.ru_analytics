@@ -44,6 +44,10 @@ class Object
     not nil?
   end
   
+  def end
+    self
+  end
+  
 end
 
 class Set
@@ -348,7 +352,8 @@ p1 = pie(
   analytics.
     map { |nick, data| [nick, data["messages"]] }.
     sort_by { |_, messages| -messages }.
-    reduce_after(n, &rest_as_1st_and_sum_2nd)
+#     reduce_after(n, &rest_as_1st_and_sum_2nd).
+    end
 )
 p2 = pie(
   "Объем сообщений",
@@ -356,7 +361,8 @@ p2 = pie(
   analytics.
     map { |nick, data| [nick, data["messages size"]] }.
     sort_by { |_, msgs_size| -msgs_size }.
-    reduce_after(n, &rest_as_1st_and_sum_2nd)
+#     reduce_after(n, &rest_as_1st_and_sum_2nd).
+    end
 )
 puts html(p1, p2)
 # puts "Период: с #{min_datetime.to_date.to_s} по #{max_datetime.to_date.to_s}"
