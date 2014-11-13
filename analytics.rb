@@ -12,7 +12,7 @@ require 'set'
 module Logging
 
   def debug_info(msg)
-    STDERR.puts "debug: #{msg}"
+#     STDERR.puts "debug: #{msg}"
   end
 
   def info(msg)
@@ -142,6 +142,49 @@ alias_to_nick = nil; begin
     lolita: лолита
     lola: лолита
     лола: лолита
+    апач: zxc
+    theromanzes: Romanzes
+    amaH: aman
+    zxc.betelgeuse: zxc
+    -z-w-: zxc
+    -z-m-: zxc
+    rejjin_jru: rejjin
+    Nice One: Марислава
+    Untouchable: Марислава
+    fakenimus\40jabber.ru: fakenimus
+    Fano plane matroid: Марислава
+    pyos: doug
+    anoos: doug
+    чУбака: Чубака
+    чубака: Чубака
+    zb: zxc
+    boxxyfag: bx
+    rejjin@ж.ру: rejjin
+    doug@xmpp.ru: doug
+    rejjin@jabber.ru: rejjin
+    rejjin_жру: rejjin
+    rejjin@жру: rejjin
+    marisa: Марислава
+    Áɱǻƞ: aman
+    bain the robot hero jesus king: bain
+    Ксюша Скобчак: Марислава
+    Yandere Pies: Pies
+    Ramzessus: Romanzes
+    Box: bx
+    режин: rejjin
+    GL_TEAPOT_SURFACE: Марислава
+    Полигональная_прорубь: Марислава
+    Пёс_среднего_уровня: doug
+    middlelayerpes: doug
+    Королева Ночи: Марислава
+    anoosdog: doug
+    rmnd@jabber.ru: rmnd
+    akirayamaoka: Akira Yamaoka
+    z-b/m: zxc
+    zxc1@conference.jabber-br.org: zxc
+    aman7: aman
+    -z-w: zxc
+    anoos_sweetshare: doug
   DATA
   # Each nick is alias to itself.
   alias_to_nick.values.each { |nick| alias_to_nick[nick] = nick }
